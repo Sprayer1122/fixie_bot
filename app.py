@@ -444,12 +444,23 @@ class AdvancedFixieBot:
             historical_tfidf = self.vectorizers['tfidf'].transform(self.historical_data['processed_description'])
             historical_count = self.vectorizers['count'].transform(self.historical_data['processed_description'])
             
-            # Calculate multiple similarity metrics
-            tfidf_similarities = np.dot(historical_tfidf, input_tfidf.T).toarray().flatten()
-            count_similarities = np.dot(historical_count, input_count.T).toarray().flatten()
+            # Calculate multiple similarity metrics with error handling
+            try:
+                tfidf_similarities = np.dot(historical_tfidf, input_tfidf.T).A.flatten()
+            except:
+                tfidf_similarities = np.dot(historical_tfidf, input_tfidf.T).toarray().flatten()
+                
+            try:
+                count_similarities = np.dot(historical_count, input_count.T).A.flatten()
+            except:
+                count_similarities = np.dot(historical_count, input_count.T).toarray().flatten()
             
-            # Combine similarities
-            combined_similarities = 0.7 * tfidf_similarities + 0.3 * count_similarities
+            # Normalize similarities to 0-1 range
+            tfidf_similarities = (tfidf_similarities - tfidf_similarities.min()) / (tfidf_similarities.max() - tfidf_similarities.min() + 1e-8)
+            count_similarities = (count_similarities - count_similarities.min()) / (count_similarities.max() - count_similarities.min() + 1e-8)
+            
+            # Combine similarities with better weighting
+            combined_similarities = 0.6 * tfidf_similarities + 0.4 * count_similarities
             
             # Get top similar tickets
             top_indices = np.argsort(combined_similarities)[-top_k:][::-1]
@@ -457,20 +468,56 @@ class AdvancedFixieBot:
             similar_tickets = []
             for idx in top_indices:
                 ticket = self.historical_data.iloc[idx]
-                similar_tickets.append({
-                    'ticket_id': ticket['Ticket ID'],
-                    'description': ticket['Customer Description'],
-                    'module': ticket['Product/Module'],
-                    'fix': ticket['Fix Applied'],
-                    'tag': ticket['Tags'],
-                    'similarity': float(combined_similarities[idx])
-                })
+                similarity_score = float(combined_similarities[idx])
+                
+                # Only include tickets with reasonable similarity
+                if similarity_score > 0.1:  # Minimum similarity threshold
+                    similar_tickets.append({
+                        'ticket_id': ticket['Ticket ID'],
+                        'description': ticket['Customer Description'],
+                        'module': ticket['Product/Module'],
+                        'fix': ticket['Fix Applied'],
+                        'tag': ticket['Tags'],
+                        'similarity': similarity_score
+                    })
             
+            # If no tickets meet threshold, return top 3 anyway
+            if not similar_tickets:
+                for idx in top_indices[:3]:
+                    ticket = self.historical_data.iloc[idx]
+                    similar_tickets.append({
+                        'ticket_id': ticket['Ticket ID'],
+                        'description': ticket['Customer Description'],
+                        'module': ticket['Product/Module'],
+                        'fix': ticket['Fix Applied'],
+                        'tag': ticket['Tags'],
+                        'similarity': float(combined_similarities[idx])
+                    })
+            
+            logger.info(f"Found {len(similar_tickets)} similar tickets for query: {description[:50]}...")
             return similar_tickets
             
         except Exception as e:
             logger.error(f"Error finding similar tickets: {e}")
-            return []
+            # Fallback: return random tickets
+            try:
+                import random
+                random_indices = random.sample(range(len(self.historical_data)), min(3, len(self.historical_data)))
+                fallback_tickets = []
+                for idx in random_indices:
+                    ticket = self.historical_data.iloc[idx]
+                    fallback_tickets.append({
+                        'ticket_id': ticket['Ticket ID'],
+                        'description': ticket['Customer Description'],
+                        'module': ticket['Product/Module'],
+                        'fix': ticket['Fix Applied'],
+                        'tag': ticket['Tags'],
+                        'similarity': 0.1  # Low similarity for fallback
+                    })
+                logger.info(f"Using fallback similar tickets: {len(fallback_tickets)}")
+                return fallback_tickets
+            except:
+                return []
     
     def _assess_prediction_quality(self, confidences):
         """Assess overall prediction quality"""
