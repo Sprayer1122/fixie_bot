@@ -23,18 +23,15 @@
 
         .container {
             max-width: 100%;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 15px 0;
-            flex-shrink: 0;
+            display: none;
         }
 
         .header h1 {
@@ -508,14 +505,6 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>FixieBot</h1>
-            <div class="status" id="status">
-                <i class="fas fa-circle"></i>
-                <span>Initializing...</span>
-            </div>
-        </div>
-
         <div class="chat-area">
             <div class="messages" id="messages">
                 <div class="message bot">
