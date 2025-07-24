@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced FixieBot - Intelligent Ticket Classifier</title>
+    <title>FixieBot</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -13,89 +13,75 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
             line-height: 1.6;
             height: 100vh;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
         .container {
-            max-width: 100%;
+            max-width: 1000px;
+            width: 100%;
+            height: 90vh;
             margin: 0;
             padding: 0;
-            height: 100vh;
             display: flex;
             flex-direction: column;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
 
         .header {
-            display: none;
+            padding: 24px 24px 16px 24px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
         }
 
         .header h1 {
-            font-size: 36px;
+            font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .header p {
-            display: none;
-        }
-
-        .status {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .status.offline {
-            background: rgba(220, 53, 69, 0.8);
+            color: #1e293b;
+            margin: 0;
+            text-align: center;
         }
 
         .chat-area {
             flex: 1;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            background: white;
             display: flex;
             flex-direction: column;
+            border-radius: 0 0 16px 16px;
+            box-shadow: none;
             overflow: hidden;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-height: 0;
         }
 
         .messages {
             flex: 1;
-            padding: 20px;
+            padding: 24px;
             overflow-y: auto;
-            background: #fafbfc;
+            background: #ffffff;
             min-height: 0;
+            max-height: calc(90vh - 200px);
         }
 
         .message {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             display: flex;
             gap: 12px;
-            animation: slideIn 0.4s ease-out;
+            animation: fadeIn 0.3s ease-out;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -104,174 +90,151 @@
         }
 
         .avatar {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 600;
             flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .message.user .avatar {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #3b82f6;
             color: white;
         }
 
         .message.bot .avatar {
-            background: linear-gradient(135deg, #00b894, #00a085);
+            background: #10b981;
             color: white;
         }
 
         .message-content {
             max-width: 70%;
-            padding: 15px 20px;
-            border-radius: 18px;
+            padding: 16px 20px;
+            border-radius: 12px;
             position: relative;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .message.user .message-content {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #3b82f6;
             color: white;
-            border-bottom-right-radius: 6px;
         }
 
         .message.bot .message-content {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .prediction-card {
             background: white;
-            border: 1px solid #e9ecef;
-            border-bottom-left-radius: 6px;
-        }
-
-        .overall-confidence {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 15px;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            text-align: center;
-            margin-bottom: 15px;
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+            padding: 20px;
+            margin-bottom: 16px;
+            max-width: 100%;
+            overflow: hidden;
         }
 
-        .overall-confidence h4 {
+        .prediction-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .prediction-title {
             font-size: 16px;
             font-weight: 600;
-            margin-bottom: 6px;
+            color: #1e293b;
         }
 
-        .overall-confidence .value {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .quality-badge {
+        .confidence-score {
+            background: #f8fafc;
             padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: inline-block;
-        }
-
-        .quality-high {
-            background: rgba(0, 184, 148, 0.9);
-            color: white;
-        }
-
-        .quality-medium {
-            background: rgba(253, 203, 110, 0.9);
-            color: white;
-        }
-
-        .quality-low {
-            background: rgba(255, 118, 117, 0.9);
-            color: white;
-        }
-
-        .quality-very-low {
-            background: rgba(108, 92, 231, 0.9);
-            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            white-space: nowrap;
         }
 
         .prediction-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
             margin-bottom: 20px;
         }
 
         .prediction-item {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            min-width: 0;
         }
 
-        .prediction-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-        }
-
-        .prediction-item h4 {
-            color: #495057;
-            font-size: 13px;
+        .prediction-label {
+            font-size: 12px;
             font-weight: 600;
-            margin-bottom: 8px;
+            color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
         .prediction-value {
             font-size: 16px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 10px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .confidence-bar {
             width: 100%;
-            height: 8px;
-            background: #e9ecef;
-            border-radius: 4px;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
             overflow: hidden;
             margin-bottom: 6px;
         }
 
         .confidence-fill {
             height: 100%;
-            border-radius: 4px;
-            transition: width 0.8s ease-out;
+            border-radius: 3px;
+            transition: width 0.6s ease-out;
         }
 
-        .confidence-high { background: linear-gradient(90deg, #00b894, #00a085); }
-        .confidence-medium { background: linear-gradient(90deg, #fdcb6e, #e17055); }
-        .confidence-low { background: linear-gradient(90deg, #ff7675, #d63031); }
+        .confidence-high { background: #10b981; }
+        .confidence-medium { background: #f59e0b; }
+        .confidence-low { background: #ef4444; }
 
         .confidence-text {
             font-size: 12px;
-            color: #6c757d;
-            font-weight: 500;
+            color: #64748b;
         }
 
         .similar-tickets {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         .similar-tickets h4 {
-            color: #495057;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
+            color: #1e293b;
             margin-bottom: 12px;
             display: flex;
             align-items: center;
@@ -280,15 +243,10 @@
 
         .ticket-item {
             padding: 12px;
-            border: 1px solid #e9ecef;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            background: #f8f9fa;
-            transition: background-color 0.2s ease;
-        }
-
-        .ticket-item:hover {
-            background: #e9ecef;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background: white;
         }
 
         .ticket-item:last-child {
@@ -300,48 +258,54 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 6px;
+            flex-wrap: wrap;
+            gap: 4px;
         }
 
         .ticket-id {
             font-weight: 600;
-            color: #495057;
+            color: #1e293b;
             font-size: 13px;
         }
 
         .ticket-similarity {
             font-size: 11px;
-            color: #6c757d;
-            background: #e9ecef;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-weight: 500;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
         }
 
         .ticket-description {
             font-size: 13px;
-            color: #6c757d;
+            color: #64748b;
             margin-bottom: 6px;
             line-height: 1.4;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .ticket-meta {
             display: flex;
             gap: 8px;
             font-size: 11px;
+            flex-wrap: wrap;
         }
 
         .ticket-meta span {
-            background: #e9ecef;
-            padding: 3px 6px;
+            background: #f1f5f9;
+            padding: 2px 6px;
             border-radius: 4px;
-            color: #495057;
+            color: #64748b;
             font-weight: 500;
+            white-space: nowrap;
         }
 
         .input-area {
-            padding: 20px;
+            padding: 20px 24px;
             background: white;
-            border-top: 1px solid #e9ecef;
+            border-top: 1px solid #e2e8f0;
             flex-shrink: 0;
         }
 
@@ -353,40 +317,41 @@
 
         .message-input {
             flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 25px;
-            font-size: 15px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
             outline: none;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             resize: none;
-            min-height: 50px;
-            max-height: 100px;
+            min-height: 44px;
+            max-height: 120px;
             font-family: inherit;
+            background: #f8fafc;
         }
 
         .message-input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .send-button {
-            padding: 15px 20px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 12px 16px;
+            background: #3b82f6;
             color: white;
             border: none;
-            border-radius: 25px;
-            font-size: 15px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 50px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.2s ease;
+            min-width: 44px;
         }
 
         .send-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+            background: #2563eb;
+            transform: translateY(-1px);
         }
 
         .send-button:disabled {
@@ -396,16 +361,17 @@
         }
 
         .examples {
-            margin-top: 15px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 12px;
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
         }
 
         .examples h4 {
-            color: #495057;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
+            color: #64748b;
             margin-bottom: 12px;
         }
 
@@ -416,29 +382,28 @@
         }
 
         .example-button {
-            padding: 8px 14px;
+            padding: 6px 12px;
             background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 20px;
-            font-size: 13px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
+            transition: all 0.2s ease;
+            color: #64748b;
         }
 
         .example-button:hover {
-            background: #667eea;
+            background: #3b82f6;
             color: white;
-            border-color: #667eea;
-            transform: translateY(-1px);
+            border-color: #3b82f6;
         }
 
         .typing-indicator {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 15px 20px;
-            color: #6c757d;
+            padding: 16px 20px;
+            color: #64748b;
             font-style: italic;
         }
 
@@ -448,9 +413,9 @@
         }
 
         .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: #6c757d;
+            width: 6px;
+            height: 6px;
+            background: #64748b;
             border-radius: 50%;
             animation: typing 1.4s infinite ease-in-out;
         }
@@ -464,25 +429,18 @@
         }
 
         .error-message {
-            background: linear-gradient(135deg, #ff7675, #d63031);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 8px;
             margin-top: 12px;
-            font-weight: 500;
+            font-size: 14px;
+            border: 1px solid #fecaca;
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 24px;
-            }
-            
-            .header p {
-                font-size: 14px;
+            .messages {
+                padding: 16px;
             }
             
             .prediction-grid {
@@ -493,18 +451,17 @@
                 max-width: 85%;
             }
             
-            .messages {
-                padding: 15px;
-            }
-            
             .input-area {
-                padding: 15px;
+                padding: 16px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="header">
+            <h1>FixieBot</h1>
+        </div>
         <div class="chat-area">
             <div class="messages" id="messages">
                 <div class="message bot">
@@ -512,16 +469,8 @@
                         <i class="fas fa-robot"></i>
                     </div>
                     <div class="message-content">
-                        <p>🚀 Welcome to Advanced FixieBot! I'm powered by an ensemble of 5 machine learning algorithms including Random Forest, Gradient Boosting, Logistic Regression, SVM, and Naive Bayes.</p>
-                        <p>I can predict:</p>
-                        <ul style="margin-left: 20px; margin-top: 10px;">
-                            <li>🎯 <strong>Fix Type</strong> - The most likely solution</li>
-                            <li>📦 <strong>Module</strong> - Which component is affected</li>
-                            <li>🏷️ <strong>Tag</strong> - Issue category (Bug, UI, Feature, Performance)</li>
-                            <li>📊 <strong>Confidence</strong> - Prediction reliability scores</li>
-                            <li>🔍 <strong>Similar Cases</strong> - Related historical tickets</li>
-                        </ul>
-                        <p>Try one of the example queries below or describe your issue!</p>
+                        <p>Hello! I'm FixieBot, your AI assistant for ticket classification. I can help you predict the most likely fix, module, and tag for your issues.</p>
+                        <p>Try describing your problem or use one of the example queries below.</p>
                     </div>
                 </div>
             </div>
@@ -540,13 +489,12 @@
                 </div>
                 
                 <div class="examples">
-                    <h4>💡 Try these examples:</h4>
+                    <h4>Example queries:</h4>
                     <div class="example-buttons">
                         <button class="example-button" onclick="sendExample('Database connection errors')">Database Issues</button>
                         <button class="example-button" onclick="sendExample('Login button not responding')">Login Problems</button>
-                        <button class="example-button" onclick="sendExample('Slow loading times in dashboard')">Performance Issues</button>
-                        <button class="example-button" onclick="sendExample('Request for dark mode theme')">Feature Requests</button>
-                        <button class="example-button" onclick="sendExample('Application crashes on startup')">Crash Issues</button>
+                        <button class="example-button" onclick="sendExample('Slow loading times')">Performance Issues</button>
+                        <button class="example-button" onclick="sendExample('Request for dark mode')">Feature Requests</button>
                     </div>
                 </div>
             </div>
@@ -557,12 +505,11 @@
         const messagesContainer = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
-        const statusElement = document.getElementById('status');
 
         // Auto-resize textarea
         messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
 
         // Send message on Enter (but allow Shift+Enter for new lines)
@@ -645,49 +592,50 @@
             const content = document.createElement('div');
             content.className = 'message-content';
             
-            // Overall confidence section
-            const overallConfidence = document.createElement('div');
-            overallConfidence.className = 'overall-confidence';
-            overallConfidence.innerHTML = `
-                <h4>🎯 Overall Prediction Quality</h4>
-                <div class="value">${(prediction.overall_confidence * 100).toFixed(1)}%</div>
-                <div class="quality-badge quality-${prediction.prediction_quality.toLowerCase().replace(' ', '-')}">
-                    ${prediction.prediction_quality} Quality
-                </div>
+            // Create prediction card
+            const predictionCard = document.createElement('div');
+            predictionCard.className = 'prediction-card';
+            
+            // Prediction header
+            const header = document.createElement('div');
+            header.className = 'prediction-header';
+            header.innerHTML = `
+                <div class="prediction-title">Analysis Results</div>
+                <div class="confidence-score">${(prediction.overall_confidence * 100).toFixed(0)}% confidence</div>
             `;
             
             // Prediction grid
-            const predictionGrid = document.createElement('div');
-            predictionGrid.className = 'prediction-grid';
-            predictionGrid.innerHTML = `
+            const grid = document.createElement('div');
+            grid.className = 'prediction-grid';
+            grid.innerHTML = `
                 <div class="prediction-item">
-                    <h4>🔧 Fix Applied</h4>
+                    <div class="prediction-label">Fix Applied</div>
                     <div class="prediction-value">${prediction.fix}</div>
                     <div class="confidence-bar">
                         <div class="confidence-fill confidence-${getConfidenceClass(prediction.fix_confidence)}" 
                              style="width: ${prediction.fix_confidence * 100}%"></div>
                     </div>
-                    <div class="confidence-text">${(prediction.fix_confidence * 100).toFixed(1)}% confidence</div>
+                    <div class="confidence-text">${(prediction.fix_confidence * 100).toFixed(0)}% confidence</div>
                 </div>
                 
                 <div class="prediction-item">
-                    <h4>📦 Module</h4>
+                    <div class="prediction-label">Module</div>
                     <div class="prediction-value">${prediction.module}</div>
                     <div class="confidence-bar">
                         <div class="confidence-fill confidence-${getConfidenceClass(prediction.module_confidence)}" 
                              style="width: ${prediction.module_confidence * 100}%"></div>
                     </div>
-                    <div class="confidence-text">${(prediction.module_confidence * 100).toFixed(1)}% confidence</div>
+                    <div class="confidence-text">${(prediction.module_confidence * 100).toFixed(0)}% confidence</div>
                 </div>
                 
                 <div class="prediction-item">
-                    <h4>🏷️ Tag</h4>
+                    <div class="prediction-label">Tag</div>
                     <div class="prediction-value">${prediction.tag}</div>
                     <div class="confidence-bar">
                         <div class="confidence-fill confidence-${getConfidenceClass(prediction.tag_confidence)}" 
                              style="width: ${prediction.tag_confidence * 100}%"></div>
                     </div>
-                    <div class="confidence-text">${(prediction.tag_confidence * 100).toFixed(1)}% confidence</div>
+                    <div class="confidence-text">${(prediction.tag_confidence * 100).toFixed(0)}% confidence</div>
                 </div>
             `;
             
@@ -695,12 +643,12 @@
             const similarTickets = document.createElement('div');
             similarTickets.className = 'similar-tickets';
             similarTickets.innerHTML = `
-                <h4><i class="fas fa-search"></i> Similar Historical Cases</h4>
+                <h4><i class="fas fa-search"></i> Similar Cases</h4>
                 ${prediction.similar_tickets.map(ticket => `
                     <div class="ticket-item">
                         <div class="ticket-header">
                             <span class="ticket-id">${ticket.ticket_id}</span>
-                            <span class="ticket-similarity">${(ticket.similarity * 100).toFixed(1)}% match</span>
+                            <span class="ticket-similarity">${(ticket.similarity * 100).toFixed(0)}% match</span>
                         </div>
                         <div class="ticket-description">${ticket.description}</div>
                         <div class="ticket-meta">
@@ -712,9 +660,11 @@
                 `).join('')}
             `;
             
-            content.appendChild(overallConfidence);
-            content.appendChild(predictionGrid);
-            content.appendChild(similarTickets);
+            predictionCard.appendChild(header);
+            predictionCard.appendChild(grid);
+            predictionCard.appendChild(similarTickets);
+            
+            content.appendChild(predictionCard);
             
             messageDiv.appendChild(avatar);
             messageDiv.appendChild(content);
@@ -741,7 +691,7 @@
             content.className = 'message-content';
             content.innerHTML = `
                 <div class="typing-indicator">
-                    <span>Advanced AI analyzing your request...</span>
+                    <span>Analyzing your request...</span>
                     <div class="typing-dots">
                         <div class="typing-dot"></div>
                         <div class="typing-dot"></div>
@@ -780,29 +730,6 @@
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
-
-        // Check status on load
-        async function checkStatus() {
-            try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
-                
-                if (data.models_trained) {
-                    statusElement.innerHTML = '<i class="fas fa-circle"></i><span>AI Ready - Advanced Models Trained</span>';
-                    statusElement.className = 'status';
-                } else {
-                    statusElement.innerHTML = '<i class="fas fa-circle"></i><span>Training Models...</span>';
-                    statusElement.className = 'status offline';
-                }
-            } catch (error) {
-                statusElement.innerHTML = '<i class="fas fa-circle"></i><span>Connection Error</span>';
-                statusElement.className = 'status offline';
-            }
-        }
-
-        // Check status every 5 seconds
-        checkStatus();
-        setInterval(checkStatus, 5000);
     </script>
 </body>
-</html> 
+</html>
